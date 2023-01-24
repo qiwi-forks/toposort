@@ -46,7 +46,7 @@ export function performDeepFirst({ node, adjacencyMap, visited = new Set(), hand
 
   adjacencyMap.get(node).forEach(neighbor => {
     if (!visited.has(neighbor)) {
-      performDeepFirst({ node: neighbor, adjacencyMap, visited })
+      performDeepFirst({ node: neighbor, adjacencyMap, visited, handler })
     }
   })
 }
@@ -80,7 +80,7 @@ export function groupByComponents(edges) {
     performDeepFirst({ node, adjacencyMap, visited })
     components.push(Array.from(visited))
     visited.forEach(node => visitedNodes.add(node))
-    node = nodes.find(node => !visitedNodes.has(node) && !visitedNodes.has(node + ''))
+    node = nodes.find(node => !visitedNodes.has(node))
   }
 
   return components.reduce(
