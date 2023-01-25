@@ -30,7 +30,7 @@ makeIncomingEdgesTests.forEach(({ input, output }) => {
   })
 })
 
-const  groupByComponentsTests = [
+const groupByComponentsTests = [
   {
     description: 'two component graph',
     input: twoComponentGraph,

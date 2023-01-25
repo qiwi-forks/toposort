@@ -1,5 +1,5 @@
 import { suite } from 'uvu'
-import toposort from '../../main/js/index.js'
+import { toposortDefault as toposort } from '../../main/js/toposort.js'
 import assert from 'node:assert'
 
 const oldTestSuites = {

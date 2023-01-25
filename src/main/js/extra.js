@@ -1,9 +1,15 @@
 import { uniqueNodes, groupByComponents, getStartNodes, makeOutgoingEdges } from './helpers.js'
-import { validateEdges } from './validators.js'
+import { validateEdges, validateArgs } from './validators.js'
 
 import { toposortCore } from './toposort.js'
 
-export function toposort2 (nodes, edges) {
+export function toposortExtra (...args) {
+  validateArgs(...args)
+  const [arg1, arg2] = args
+
+  const nodes = arg2 ? arg1 : uniqueNodes(arg1)
+  const edges = arg2 ? arg2 : arg1
+
   validateEdges(nodes, edges)
 
   return groupByComponents(edges)
@@ -17,6 +23,3 @@ export function toposort2 (nodes, edges) {
     })
 }
 
-export function toposort2default (edges) {
-  return toposort2(uniqueNodes(edges), edges)
-}

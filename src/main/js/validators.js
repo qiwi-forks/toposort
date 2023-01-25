@@ -8,3 +8,14 @@ export const validateEdges = (nodes, edges) => {
     }
   })
 }
+
+export const validateArgs = (...args) => {
+  if (args.length === 0) {
+    throw new Error('Not enough parameters')
+  }
+
+  if (!args.every(arg => Array.isArray(arg))) {
+    throw new Error('Paratemers must be arrays')
+  }
+}
+

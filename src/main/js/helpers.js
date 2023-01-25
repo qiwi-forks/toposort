@@ -38,17 +38,20 @@ export function uniqueNodes(arr){
   return Array.from(res)
 }
 
-export function performDepthFirst({ node, adjacencyMap, visited = new Set(), handler }) {
-  if (!visited.has(node)) {
-    visited.add(node)
-    handler && handler(node)
+export function performDepthFirstFactory({ adjacencyMap, visited }) {
+  function performDepthFirst (node) {
+    if (!visited.has(node)) {
+      visited.add(node)
+    }
+
+    adjacencyMap.get(node).forEach(neighbor => {
+      if (!visited.has(neighbor)) {
+        performDepthFirst(neighbor)
+      }
+    })
   }
 
-  adjacencyMap.get(node).forEach(neighbor => {
-    if (!visited.has(neighbor)) {
-      performDepthFirst({ node: neighbor, adjacencyMap, visited, handler })
-    }
-  })
+  return performDepthFirst
 }
 
 export function getAdjacencyMapOfIndirectedGraph (edges) {
@@ -71,13 +74,13 @@ export function getAdjacencyMapOfIndirectedGraph (edges) {
 export function groupByComponents(edges) {
   const adjacencyMap = getAdjacencyMapOfIndirectedGraph(edges)
   const nodes = uniqueNodes(edges)
-  let node = nodes[0]
   const components = []
   const visitedNodes = new Set()
+  let node = nodes[0]
 
   while(visitedNodes.size < nodes.length) {
     const visited = new Set()
-    performDepthFirst({ node, adjacencyMap, visited })
+    performDepthFirstFactory({ adjacencyMap, visited })(node)
     components.push(Array.from(visited))
     visited.forEach(node => visitedNodes.add(node))
     node = nodes.find(node => !visitedNodes.has(node))
