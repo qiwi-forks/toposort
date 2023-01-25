@@ -2,17 +2,28 @@
 
 Fork of [toposort](https://github.com/marcelklehr/toposort) with updated dependencies and some new features
 
+## Installation
+
+```shell
+yarn add @qiwi/toposort
+
+npm i @qiwi/toposort
+```
+
 ## Usage
 
-### toposortExtra
+### toposortExtra(nodes, edges) | toposortExtra(edges)
 
 Returns an array of the graph components 
 
 ```js
 import { toposortExtra } from '@qiwi/toposort'
 
-const res = toposortExtra([1, 2, 3, 4, 5, 6, 7, 8, 9], [[1, 3], [1, 2], [2, 4], [2, 5], [6, 7], [6, 8], [9, 8]])
-const res2 = toposortExtra([[1, 3], [1, 2], [2, 4], [2, 5], [6, 7], [6, 8], [9, 8]]) // the same result
+const res = toposortExtra([[1, 3], [1, 2], [2, 4], [2, 5], [6, 7], [6, 8], [9, 8]])
+const res2 = toposortExtra(
+  [1, 2, 3, 4, 5, 6, 7, 8, 9],
+  [[1, 3], [1, 2], [2, 4], [2, 5], [6, 7], [6, 8], [9, 8]]
+) // the same, but also checks edge nodes to be in the node list
 
 console.log(res)
 /*
@@ -41,9 +52,9 @@ console.log(res)
  */
 ```
 
-### toposort
+### toposort(edges)
 
-The library also exports marcelklehr's original toposort
+Marcelklehr's original toposort
 
 ```js
 import toposort from '@qiwi/toposort' 
@@ -58,9 +69,11 @@ console.log(toposort([
 )) // [ '3', '6', '5', '2', '1', '4' ]
 ```
 
-### array
+### array(nodes, edges)
 
-The library also exports marcelklehr's original toposort.array
+Marcelklehr's original toposort.array.
+
+Checks edge nodes for presence in the nodes array
 
 ```js
 import { array } from '@qiwi/toposort' 
