@@ -38,7 +38,7 @@ export function uniqueNodes(arr){
   return Array.from(res)
 }
 
-export function performDeepFirst({ node, adjacencyMap, visited = new Set(), handler }) {
+export function performDepthFirst({ node, adjacencyMap, visited = new Set(), handler }) {
   if (!visited.has(node)) {
     visited.add(node)
     handler && handler(node)
@@ -46,7 +46,7 @@ export function performDeepFirst({ node, adjacencyMap, visited = new Set(), hand
 
   adjacencyMap.get(node).forEach(neighbor => {
     if (!visited.has(neighbor)) {
-      performDeepFirst({ node: neighbor, adjacencyMap, visited, handler })
+      performDepthFirst({ node: neighbor, adjacencyMap, visited, handler })
     }
   })
 }
@@ -77,7 +77,7 @@ export function groupByComponents(edges) {
 
   while(visitedNodes.size < nodes.length) {
     const visited = new Set()
-    performDeepFirst({ node, adjacencyMap, visited })
+    performDepthFirst({ node, adjacencyMap, visited })
     components.push(Array.from(visited))
     visited.forEach(node => visitedNodes.add(node))
     node = nodes.find(node => !visitedNodes.has(node))
