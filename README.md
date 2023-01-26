@@ -2,6 +2,18 @@
 
 Fork of [toposort](https://github.com/marcelklehr/toposort) with updated dependencies and some new features
 
+## Why?
+
+Toposort is wonderful, but we also need to know which parts of graph can be handled in parallel mode.
+
+A graph can have unconnected parts called [graph components](https://en.wikipedia.org/wiki/Component_(graph_theory)).
+
+These parts can be handled simultaneously because they are not connected to each other.
+
+So, toposortExtra returns a list of graph components and their [topologically ordered](https://en.wikipedia.org/wiki/Topological_sorting) nodes.
+
+This can be useful in parallelization of handling something in topological order.
+
 ## Installation
 
 ```shell
