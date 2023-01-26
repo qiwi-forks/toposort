@@ -8,7 +8,7 @@ export function toposortExtra (...args) {
   const [arg1, arg2] = args
 
   const nodes = arg2 ? arg1 : uniqueNodes(arg1)
-  const edges = arg2 ? arg2 : arg1
+  const edges = arg2 ? arg2 : arg1 // eslint-disable-line unicorn/prefer-logical-operator-over-ternary
 
   validateEdges(nodes, edges)
 
@@ -18,7 +18,7 @@ export function toposortExtra (...args) {
       return {
         startNodes: getStartNodes(componentEdges),
         array: toposortCore(uniqueNodes(componentEdges), componentEdges)
-          .map(node => [node, Array.from(outgoing.get(node))])
+          .map(node => [node, [...outgoing.get(node)]])
       }
     })
 }

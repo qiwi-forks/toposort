@@ -35,7 +35,7 @@ export function uniqueNodes(arr){
     res.add(edge[0])
     res.add(edge[1])
   }
-  return Array.from(res)
+  return [...res]
 }
 
 export function visitDepthFirst ({ node, visited, adjacencyMap }) {
@@ -43,7 +43,7 @@ export function visitDepthFirst ({ node, visited, adjacencyMap }) {
   let cur = node
   while(cur) {
     visited.add(cur)
-    const neighbors = Array.from(adjacencyMap.get(cur))
+    const neighbors = [...adjacencyMap.get(cur)]
     stack.push(...neighbors.filter(item => !visited.has(item)).reverse())
     cur = stack.pop()
   }
@@ -76,7 +76,7 @@ export function groupByComponents(edges) {
   while(visitedNodes.size < nodes.length) {
     const visited = new Set()
     visitDepthFirst({ adjacencyMap, visited, node })
-    components.push(Array.from(visited))
+    components.push([...visited])
     visited.forEach(node => visitedNodes.add(node))
     node = nodes.find(node => !visitedNodes.has(node))
   }

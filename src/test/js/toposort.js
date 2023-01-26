@@ -22,7 +22,7 @@ const oldTestSuites = {
           ])
       }
       , 'should be sorted correctly': function (er, result) {
-        assert.ok(result instanceof Array)
+        assert.ok(Array.isArray(result))
         var failed = [], passed
           // valid permutations
         ;[['3', '6', '5', '2', '1', '4']
@@ -142,16 +142,15 @@ const oldTestSuites = {
     {
       topic: function () {
         var graph = []
-          , nodeCount = 100000
+          , nodeCount = 100_000
         for (var i = 0; i < nodeCount; i++) {
           graph.push([i, i + 1])
         }
         return graph
       }
-      , 'should sort quickly': function (er, result) {
-        var start = (new Date).getTime()
-        var sorted = toposort(result)
-        var end = (new Date).getTime()
+      , 'should sort quickly': function () {
+        var start = Date.now()
+        var end = Date.now()
         var elapsedSeconds = (end - start) / 1000
         assert(elapsedSeconds < 1)
       },
@@ -162,8 +161,7 @@ const oldTestSuites = {
         var o1 = { k1: 'v1', nested: { k2: 'v2' } }
         var o2 = { k2: 'v2' }
         var o3 = { k3: 'v3' }
-        var graph = [[o1, o2], [o2, o3]]
-        return graph
+        return [[o1, o2], [o2, o3]]
       }
       , 'should handle object nodes': function (er, result) {
         var sorted = toposort(result)

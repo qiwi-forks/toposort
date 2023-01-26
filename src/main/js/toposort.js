@@ -1,26 +1,13 @@
 import { makeNodesHash, makeOutgoingEdges, uniqueNodes } from './helpers.js'
 import { validateEdges } from './validators.js'
 
-export function toposortCore(nodes, edges) {
-  let cursor = nodes.length
-  let i = cursor
-  const sorted = new Array(cursor)
-  const visited = {}
-  const nodesHash = makeNodesHash(nodes)
-  const outgoingEdges = makeOutgoingEdges(edges)
-
-  while (i--) {
-    if (!visited[i]) visit(nodes[i], i, new Set())
-  }
-
-  return sorted
-
+function visitFactory(visited, outgoingEdges, nodesHash, sorted, cursor) {
   function visit(node, i, predecessors) {
     if (predecessors.has(node)) {
       let nodeRep
       try {
         nodeRep = ', node was:' + JSON.stringify(node)
-      } catch (e) {
+      } catch {
         nodeRep = ''
       }
       throw new Error('Cyclic dependency' + nodeRep)
@@ -34,9 +21,10 @@ export function toposortCore(nodes, edges) {
     visited[i] = true
 
     let outgoing = outgoingEdges.get(node) || new Set()
-    outgoing = Array.from(outgoing)
+    outgoing = [...outgoing]
+    i = outgoing.length
 
-    if (i = outgoing.length) {
+    if (i) {
       predecessors.add(node)
       do {
         const child = outgoing[--i]
@@ -47,6 +35,24 @@ export function toposortCore(nodes, edges) {
 
     sorted[--cursor] = node
   }
+
+  return visit
+}
+
+export function toposortCore(nodes, edges) {
+  let cursor = nodes.length
+  let i = cursor
+  const sorted = [cursor]
+  const visited = {}
+  const nodesHash = makeNodesHash(nodes)
+  const outgoingEdges = makeOutgoingEdges(edges)
+  const visit = visitFactory(visited, outgoingEdges, nodesHash, sorted, cursor)
+
+  while (i--) {
+    if (!visited[i]) visit(nodes[i], i, new Set())
+  }
+
+  return sorted
 }
 
 export function toposort(nodes, edges) {
