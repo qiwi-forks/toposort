@@ -38,20 +38,15 @@ export function uniqueNodes(arr){
   return Array.from(res)
 }
 
-export function performDepthFirstFactory({ adjacencyMap, visited }) {
-  function performDepthFirst (node) {
-    if (!visited.has(node)) {
-      visited.add(node)
-    }
-
-    adjacencyMap.get(node).forEach(neighbor => {
-      if (!visited.has(neighbor)) {
-        performDepthFirst(neighbor)
-      }
-    })
+export function visitDepthFirst ({ node, visited, adjacencyMap }) {
+  const stack = [node]
+  let cur = node
+  while(cur) {
+    visited.add(cur)
+    const neighbors = Array.from(adjacencyMap.get(cur))
+    stack.push(...neighbors.filter(item => !visited.has(item)).reverse())
+    cur = stack.pop()
   }
-
-  return performDepthFirst
 }
 
 export function getAdjacencyMapOfIndirectedGraph (edges) {
@@ -80,7 +75,7 @@ export function groupByComponents(edges) {
 
   while(visitedNodes.size < nodes.length) {
     const visited = new Set()
-    performDepthFirstFactory({ adjacencyMap, visited })(node)
+    visitDepthFirst({ adjacencyMap, visited, node })
     components.push(Array.from(visited))
     visited.forEach(node => visitedNodes.add(node))
     node = nodes.find(node => !visitedNodes.has(node))

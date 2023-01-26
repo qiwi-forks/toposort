@@ -1,7 +1,19 @@
 import { suite } from 'uvu'
 import assert from 'node:assert'
-import { makeIncomingEdges, groupByComponents } from '../../main/js/helpers.js'
-import { oneComponentGraphWithLoop, twoComponentGraph, oneComponentGraph, twoComponentGraphWithLoop } from './graphs.js'
+import {
+  makeIncomingEdges,
+  groupByComponents,
+  uniqueNodes,
+  getAdjacencyMapOfIndirectedGraph,
+  visitDepthFirst,
+} from '../../main/js/helpers.js'
+import {
+  oneComponentGraphWithLoop,
+  twoComponentGraph,
+  oneComponentGraph,
+  twoComponentGraphWithLoop,
+  generateSquareDenseGraph,
+} from './graphs.js'
 
 const test = suite('helpers')
 
@@ -58,8 +70,8 @@ const groupByComponentsTests = [
     description: 'one component graph with loop',
     input: oneComponentGraphWithLoop,
     output: [
-      oneComponentGraphWithLoop
-    ]
+      oneComponentGraphWithLoop,
+    ],
   },
   {
     description: 'two component graph with loop',
@@ -67,20 +79,57 @@ const groupByComponentsTests = [
     output: [
       [[1, 3], [1, 2], [2, 4], [2, 5]],
       [[6, 7], [6, 8], [9, 8], [7, 6]],
-    ]
+    ],
   },
   {
     description: 'empty graph',
     input: [],
-    output: []
-  }
+    output: [],
+  },
 ]
 
- groupByComponentsTests.forEach(({ description, input, output }) => {
+groupByComponentsTests.forEach(({ description, input, output }) => {
   test(`groupByComponents, ${description}`, () => {
     const res = groupByComponents(input)
     assert.deepEqual(res, output)
   })
+})
+
+const visitDepthFirstTestCases = [
+  {
+    description: 'it visits all nodes of one-component graph',
+    graph: oneComponentGraph,
+    node: 1,
+    visited: uniqueNodes(oneComponentGraph),
+  },
+  {
+    description: 'it visits all nodes of a given component of two-component graph',
+    graph: twoComponentGraph,
+    node: 1,
+    visited: [1, 2, 3, 4, 5],
+  },
+]
+
+visitDepthFirstTestCases.forEach(({ description, graph, node, visited }) => {
+  test(`visitDepthFirst ${description}`, () => {
+    const visitedNodes = new Set()
+    const adjacencyMap = getAdjacencyMapOfIndirectedGraph(graph)
+    visitDepthFirst({ node, visited: visitedNodes, adjacencyMap })
+
+    assert.deepEqual(visitedNodes, new Set(visited))
+  })
+})
+
+test('visitDepthFirst handles graph with 10 000 nodes in a proper time', () => {
+  const maxPerformTime = 500
+  const graph = generateSquareDenseGraph({ width: 100, height: 100 })
+  const visited = new Set()
+  const adjacencyMap = getAdjacencyMapOfIndirectedGraph(graph)
+  const start = Date.now()
+  visitDepthFirst({ node: '0_0', visited, adjacencyMap })
+  const time = Date.now() - start
+  assert.equal(visited.size, uniqueNodes(graph).length)
+  assert.ok(time < maxPerformTime, `took ${time} ms, should be < ${maxPerformTime}`)
 })
 
 test.run()

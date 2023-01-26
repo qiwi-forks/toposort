@@ -85,10 +85,11 @@ test('toposortExtra works with giant one-component graph with in 100 ms', () => 
   assert.equal(res[0].array.length, nodesCount)
 })
 
-test('toposortExtra works with giant four-component graph with in 100 ms', () => {
-  const width = 50
-  const height = 50
+test('toposortExtra works with giant four-component graph with in proper time', () => {
+  const width = 100
+  const height = 100
   const nodesCount = width * height * 4
+  const maxPerformTime = 500
   const graph = [
     ...generateSquareDenseGraph({ width, height, prefix: 'a' }),
     ...generateSquareDenseGraph({ width, height, prefix: 'b' }),
@@ -101,7 +102,7 @@ test('toposortExtra works with giant four-component graph with in 100 ms', () =>
   const res = toposortExtra(graph)
   const diff = Date.now() - start
 
-  assert.ok(diff < 100)
+  assert.ok(diff < maxPerformTime, `took ${diff} ms, should be < ${maxPerformTime}`)
   assert.equal(res.length, 4)
   assert.deepEqual(
     res.reduce((acc, component) => [...acc, ...component.startNodes], []).sort(),
