@@ -73,19 +73,21 @@ export function groupByComponents(edges) {
   const nodes = uniqueNodes(edges)
   const components = []
   const visitedNodes = new Set()
-  let node = nodes[0]
+  let currentNode = nodes[0]
 
   while(visitedNodes.size < nodes.length) {
-    const visited = visitDepthFirst({ adjacencyMap, node })
+    const visited = visitDepthFirst({ adjacencyMap, node: currentNode })
     components.push([...visited])
     visited.forEach(node => visitedNodes.add(node))
-    node = nodes.find(node => !visitedNodes.has(node))
+    currentNode = nodes.find(node => !visitedNodes.has(node))
   }
 
   return components.reduce(
-    (acc, cur, i) => {
-      const set = new Set(cur)
-      acc[i].push(...edges.filter(edge => set.has(edge[0]) || set.has(edge[1])))
+    (acc, componentNodes, i) => {
+      const componentNodesSet = new Set(componentNodes)
+      acc[i].push(...edges.filter(([nodeFrom, nodeTo]) =>
+        componentNodesSet.has(nodeFrom) || componentNodesSet.has(nodeTo))
+      )
       return acc
     },
     Array.from({ length: components.length }, () => [])
