@@ -38,7 +38,8 @@ export function uniqueNodes(arr){
   return [...res]
 }
 
-export function visitDepthFirst ({ node, visited, adjacencyMap }) {
+export function visitDepthFirst ({ node, adjacencyMap }) {
+  const visited = new Set()
   const stack = [node]
   let cur = node
   while(cur) {
@@ -47,6 +48,7 @@ export function visitDepthFirst ({ node, visited, adjacencyMap }) {
     stack.push(...neighbors.filter(item => !visited.has(item)).reverse())
     cur = stack.pop()
   }
+  return visited
 }
 
 export function getAdjacencyMapOfIndirectedGraph (edges) {
@@ -74,8 +76,7 @@ export function groupByComponents(edges) {
   let node = nodes[0]
 
   while(visitedNodes.size < nodes.length) {
-    const visited = new Set()
-    visitDepthFirst({ adjacencyMap, visited, node })
+    const visited = visitDepthFirst({ adjacencyMap, node })
     components.push([...visited])
     visited.forEach(node => visitedNodes.add(node))
     node = nodes.find(node => !visitedNodes.has(node))

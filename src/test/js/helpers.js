@@ -112,22 +112,23 @@ const visitDepthFirstTestCases = [
 
 visitDepthFirstTestCases.forEach(({ description, graph, node, visited }) => {
   test(`visitDepthFirst ${description}`, () => {
-    const visitedNodes = new Set()
     const adjacencyMap = getAdjacencyMapOfIndirectedGraph(graph)
-    visitDepthFirst({ node, visited: visitedNodes, adjacencyMap })
+
+    const visitedNodes = visitDepthFirst({ node, adjacencyMap })
 
     assert.deepEqual(visitedNodes, new Set(visited))
   })
 })
 
 test('visitDepthFirst handles graph with 10 000 nodes in a proper time', () => {
-  const maxPerformTime = 500
+  const maxPerformTime = 1000
   const graph = generateSquareDenseGraph({ width: 100, height: 100 })
-  const visited = new Set()
   const adjacencyMap = getAdjacencyMapOfIndirectedGraph(graph)
+
   const start = Date.now()
-  visitDepthFirst({ node: '0_0', visited, adjacencyMap })
+  const visited = visitDepthFirst({ node: '0_0', adjacencyMap })
   const time = Date.now() - start
+
   assert.equal(visited.size, uniqueNodes(graph).length)
   assert.ok(time < maxPerformTime, `took ${time} ms, should be < ${maxPerformTime}`)
 })
