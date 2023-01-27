@@ -22,7 +22,7 @@ npm i @qiwi/toposort
 
 ## Usage
 
-### toposortExtra(nodes, edges) | toposortExtra(edges)
+### toposortExtra({ nodes, edges, throwOnCycle })
 
 Returns an array of the graph components
 
@@ -33,11 +33,7 @@ The graph above is used in the code below.
 ```js
 import { toposortExtra } from '@qiwi/toposort'
 
-const res = toposortExtra([[1, 3], [1, 2], [2, 4], [2, 5], [6, 7], [6, 8], [9, 8]]) // see diagramm above
-const res2 = toposortExtra(
-  [1, 2, 3, 4, 5, 6, 7, 8, 9],
-  [[1, 3], [1, 2], [2, 4], [2, 5], [6, 7], [6, 8], [9, 8]]
-) // the same, but also checks edge nodes to be in the node list
+const res = toposortExtra({ edges: [[1, 3], [1, 2], [2, 4], [2, 5], [6, 7], [6, 8], [9, 8]] }) // see diagramm above
 
 console.log(res)
 /*
@@ -78,6 +74,33 @@ console.log(res)
     }
  */
 ```
+
+The same result, but also checks edge nodes to be in the `nodes` list
+
+```js
+const res = toposortExtra({
+  nodes: [1, 2, 3, 4, 5, 6, 7, 8, 9],
+  edges: [[1, 3], [1, 2], [2, 4], [2, 5], [6, 7], [6, 8], [9, 8]]
+})
+console.log(res) // the same result
+```
+
+```js
+const res = toposortExtra({
+  nodes: [1, 2, 3, 4, 6, 7, 8, 9],
+  edges: [[1, 3], [1, 2], [2, 4], [2, 5], [6, 7], [6, 8], [9, 8]]
+}) // Uncaught Error: Unknown node. There is an unknown node in the supplied edges.
+```
+
+You can also check the graph to be acyclic 
+
+```js
+toposortExtra({
+  edges: [[1, 2], [2, 3], [3, 1]],
+  throwOnCycle: true
+}) // Uncaught Error: Cyclic dependency, node was:1
+```
+
 
 ### toposort(edges)
 
