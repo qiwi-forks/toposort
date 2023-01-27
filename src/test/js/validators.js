@@ -1,42 +1,43 @@
 import { suite } from 'uvu'
-import { validateArgs, validateEdges } from '../../main/js/validators.js'
+import { validateArgs, validateEdges, validateDag } from '../../main/js/validators.js'
 import assert from 'node:assert'
+import {
+  oneComponentGraph,
+  oneComponentGraphWithComplexLoop,
+  oneComponentGraphWithLoop, twoComponentGraph,
+  twoComponentGraphWithLoop,
+} from './graphs.js'
 
 const test = suite('validators')
 
 const validateArgsTestCases = [
   {
     description: 'it throws when there are no arguments',
-    input: [],
+    input: undefined,
     throws: true
   },
   {
     description: 'it does not throw when edges are given ',
-    input: [[[1, 2], [2, 3]]],
+    input: { edges: [[1, 2], [2, 3]] },
     throws: false
   },
   {
     description: 'it does not throw when edges and nodes are given',
-    input: [[1, 2, 3], [[1, 2], [2, 3]]],
+    input: { nodes: [1, 2, 3], edges: [[1, 2], [2, 3]] },
     throws: false
   },
   {
-    description: 'throws when the first arg is undefined',
-    input: [undefined, [[1, 2], [2, 3]]],
-    throws: true
-  },
-  {
-    description: 'throws when the second arg is undefined',
-    input: [[1, 2, 3], undefined],
+    description: 'throws when the edges is undefined',
+    input: { nodes: [1, 2, 3] },
     throws: true
   },
 ]
 
 validateArgsTestCases.forEach(({ description, input, throws }) => test(description, () => {
   if (throws) {
-    assert.throws(() => validateArgs(...input))
+    assert.throws(() => validateArgs(input))
   } else {
-    validateArgs(...input)
+    validateArgs(input)
   }
 }))
 
@@ -57,8 +58,60 @@ validateEdgesTestCases.forEach(({ description, input, throws }) => test(descript
   if (throws) {
     assert.throws(() => validateEdges(...input))
   } else {
-    validateArgs(...input)
+    validateEdges(...input)
   }
 }))
+
+const validateDagTestCases = [
+  {
+    description: 'throws for oneComponentGraphWithComplexLoop',
+    graph: oneComponentGraphWithComplexLoop,
+    throws: true,
+    cycleNode: 1,
+  },
+  {
+    description: 'throws for oneComponentGraphWithLoop',
+    graph: oneComponentGraphWithLoop,
+    throws: true,
+    cycleNode: 6,
+  },
+  {
+    description: 'throws for twoComponentGraphWithLoop',
+    graph: twoComponentGraphWithLoop,
+    throws: true,
+    cycleNode: 6,
+  },
+  {
+    description: 'does not throw for oneComponentGraph',
+    graph: oneComponentGraph,
+    throws: false,
+  },
+  {
+    description: 'does not throw for the second component of twoComponentGraph',
+    graph: twoComponentGraph,
+    throws: false
+  },
+  {
+    description: 'does not throw for the first component of twoComponentGraph',
+    graph: twoComponentGraph,
+    throws: false
+  }
+]
+
+validateDagTestCases.forEach(({ description, graph, cycleNode, throws }) => {
+  test(`validateDag ${description}`, () => {
+    if (throws) {
+      assert.throws(
+        () => validateDag({ edges: graph }),
+        {
+          message: `Cyclic dependency, node was:${cycleNode}`
+        }
+      )
+    } else {
+      validateDag({ edges: graph })
+    }
+  })
+})
+
 
 test.run()

@@ -47,38 +47,38 @@ const groupByComponentsTests = [
     description: 'two component graph',
     input: twoComponentGraph,
     output: [
-      [[1, 3], [1, 2], [2, 4], [2, 5]],
-      [[6, 7], [6, 8], [9, 8]],
+      new Set([1, 2, 3, 4, 5]),
+      new Set([6, 7, 8, 9]),
     ],
   },
   {
     description: 'the same two component graph but the order differs',
     input: [[1, 3], [2, 5], [6, 7], [2, 4], [6, 8], [9, 8], [1, 2]], // the same graph but the order differs
     output: [
-      [[1, 3], [2, 5], [2, 4], [1, 2]],
-      [[6, 7], [6, 8], [9, 8]],
+      new Set([1, 2, 3, 4, 5]),
+      new Set([6, 7, 8, 9]),
     ],
   },
   {
     description: 'one component graph',
     input: oneComponentGraph, // one graph
     output: [
-      oneComponentGraph,
+      new Set([1, 2, 3, 4, 5, 6, 7, 8, 9]),
     ],
   },
   {
     description: 'one component graph with loop',
     input: oneComponentGraphWithLoop,
     output: [
-      oneComponentGraphWithLoop,
+      new Set([6, 7, 8, 9])
     ],
   },
   {
     description: 'two component graph with loop',
     input: twoComponentGraphWithLoop,
     output: [
-      [[1, 3], [1, 2], [2, 4], [2, 5]],
-      [[6, 7], [6, 8], [9, 8], [7, 6]],
+      new Set([1, 2, 3, 4, 5]),
+      new Set([6, 7, 8, 9])
     ],
   },
   {
@@ -90,7 +90,7 @@ const groupByComponentsTests = [
 
 groupByComponentsTests.forEach(({ description, input, output }) => {
   test(`groupByComponents, ${description}`, () => {
-    const res = groupByComponents(input)
+    const res = groupByComponents({ edges: input })
     assert.deepEqual(res, output)
   })
 })

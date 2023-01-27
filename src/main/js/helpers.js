@@ -68,7 +68,7 @@ export function getAdjacencyMapOfIndirectedGraph (edges) {
   }, new Map())
 }
 
-export function groupByComponents(edges) {
+export function groupByComponents({ edges }) {
   const adjacencyMap = getAdjacencyMapOfIndirectedGraph(edges)
   const nodes = uniqueNodes(edges)
   const components = []
@@ -77,19 +77,10 @@ export function groupByComponents(edges) {
 
   while(visitedNodes.size < nodes.length) {
     const visited = visitDepthFirst({ adjacencyMap, node: currentNode })
-    components.push([...visited])
+    components.push(visited)
     visited.forEach(node => visitedNodes.add(node))
     currentNode = nodes.find(node => !visitedNodes.has(node))
   }
 
-  return components.reduce(
-    (acc, componentNodes, i) => {
-      const componentNodesSet = new Set(componentNodes)
-      acc[i].push(...edges.filter(([nodeFrom, nodeTo]) =>
-        componentNodesSet.has(nodeFrom) || componentNodesSet.has(nodeTo))
-      )
-      return acc
-    },
-    Array.from({ length: components.length }, () => [])
-  )
+  return components
 }

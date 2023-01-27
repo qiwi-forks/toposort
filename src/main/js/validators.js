@@ -1,4 +1,4 @@
-import { makeNodesHash } from './helpers.js'
+import { makeNodesHash, makeOutgoingEdges, uniqueNodes } from './helpers.js'
 
 export const validateEdges = (nodes, edges) => {
   const nodesHash = makeNodesHash(nodes)
@@ -9,13 +9,35 @@ export const validateEdges = (nodes, edges) => {
   })
 }
 
-export const validateArgs = (...args) => {
-  if (args.length === 0) {
-    throw new Error('Not enough parameters')
+export const validateArgs = (opts) => {
+  if (!opts) {
+    throw new Error('No parameter provided')
   }
 
-  if (!args.every(arg => Array.isArray(arg))) {
-    throw new Error('Paratemers must be arrays')
+  if (!opts.edges) {
+    throw new Error('Missing edges in opts')
   }
+}
+
+export function validateDag ({
+  edges,
+  nodes = uniqueNodes(edges),
+  outgoing = makeOutgoingEdges(edges),
+}) {
+  const visited = new Set()
+  const finished = new Set()
+
+  const dfs = (node) => {
+    if (finished.has(node)) {
+      return
+    }
+    if (visited.has(node)) {
+      throw new Error('Cyclic dependency, node was:' + node)
+    }
+    visited.add(node)
+    outgoing.get(node).forEach((node) => dfs(node))
+    finished.add(node)
+  }
+  nodes.forEach(node => dfs(node))
 }
 

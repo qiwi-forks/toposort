@@ -1,25 +1,39 @@
-import { uniqueNodes, groupByComponents, getStartNodes, makeOutgoingEdges } from './helpers.js'
-import { validateEdges, validateArgs } from './validators.js'
+import {
+  uniqueNodes,
+  groupByComponents,
+  getStartNodes,
+  makeOutgoingEdges,
+  makeIncomingEdges,
+} from './helpers.js'
+import { validateEdges, validateArgs, validateDag } from './validators.js'
 
-import { toposortCore } from './toposort.js'
+export function toposortExtra (opts) {
+  validateArgs(opts)
 
-export function toposortExtra (...args) {
-  validateArgs(...args)
-  const [arg1, arg2] = args
-
-  const nodes = arg2 ? arg1 : uniqueNodes(arg1)
-  const edges = arg2 ? arg2 : arg1 // eslint-disable-line unicorn/prefer-logical-operator-over-ternary
+  const nodes = opts.nodes || uniqueNodes(opts.edges)
+  const edges = opts.edges
 
   validateEdges(nodes, edges)
 
-  return groupByComponents(edges)
-    .map(componentEdges => {
-      const outgoing = makeOutgoingEdges(componentEdges)
-      return {
-        startNodes: getStartNodes(componentEdges),
-        array: toposortCore(uniqueNodes(componentEdges), componentEdges)
-          .map(node => [node, [...outgoing.get(node)]])
-      }
-    })
+  const prev = new Map([...makeIncomingEdges(edges)].map(([node, neighborsSet]) => [node, [...neighborsSet]]))
+  const next = new Map([...makeOutgoingEdges(edges)].map(([node, neighborsSet]) => [node, [...neighborsSet]]))
+  const sources = getStartNodes(edges)
+
+  if (opts.throwOnCycle) {
+    validateDag({ edges, nodes, outgoing: next })
+  }
+
+  return {
+    sources,
+    prev,
+    next,
+    graphs: groupByComponents({ edges })
+      .map(graphNodesSet => {
+        return {
+          nodes: [...graphNodesSet],
+          sources: sources.filter(node => graphNodesSet.has(node))
+        }
+      })
+  }
 }
 

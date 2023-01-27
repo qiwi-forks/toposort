@@ -6,13 +6,11 @@ Fork of [toposort](https://github.com/marcelklehr/toposort) with updated depende
 
 Toposort is wonderful, but we also need to know which parts of graph can be handled in parallel mode.
 
-A graph can have unconnected parts called [graph components](https://en.wikipedia.org/wiki/Component_(graph_theory)).
+You can simultaneously handle unconnected parts (components in graph theory) of a graph.
 
-These parts can be handled simultaneously because they are not connected to each other.
+Also, you can analyze dependencies and dependants of graph nodes to find independent nodes to parallelize their processing.
 
-So, toposortExtra returns a list of graph components and their [topologically ordered](https://en.wikipedia.org/wiki/Topological_sorting) nodes.
-
-This can be useful in parallelization of handling something in topological order.
+So, toposortExtra returns maps of dependencies and dependants and a list of graph components.
 
 ## Installation
 
@@ -26,12 +24,16 @@ npm i @qiwi/toposort
 
 ### toposortExtra(nodes, edges) | toposortExtra(edges)
 
-Returns an array of the graph components 
+Returns an array of the graph components
+
+![two-component-graph](./src/test/resources/graphs/two-component.svg)
+
+The graph above is used in the code below.
 
 ```js
 import { toposortExtra } from '@qiwi/toposort'
 
-const res = toposortExtra([[1, 3], [1, 2], [2, 4], [2, 5], [6, 7], [6, 8], [9, 8]])
+const res = toposortExtra([[1, 3], [1, 2], [2, 4], [2, 5], [6, 7], [6, 8], [9, 8]]) // see diagramm above
 const res2 = toposortExtra(
   [1, 2, 3, 4, 5, 6, 7, 8, 9],
   [[1, 3], [1, 2], [2, 4], [2, 5], [6, 7], [6, 8], [9, 8]]
@@ -39,28 +41,41 @@ const res2 = toposortExtra(
 
 console.log(res)
 /*
-[
-  {
-    startNodes: [1], // nodes without incoming edges
-    array: [ // list of nodes in topological order with accessible neighbors
-      [1, [3, 2]],
-      [3, []],
-      [2, [4, 5]],
-      [4, []],
-      [5, []],
-    ],
-  },
-    {
-      startNodes: [6, 9],
-      array: [
+{
+      sources: [1, 6, 9], // nodes which do not have incoming edges, e.g. dependencies/parents
+      prev: new Map([ // map of dependencies
+        [1, []],
+        [3, [1]],
+        [2, [1]],
+        [4, [2]],
+        [5, [2]],
+        [6, []],
+        [7, [6]],
+        [8, [6, 9]],
+        [9, []],
+      ]),
+      next: new Map([ // map of dependants
+        [1, [2, 3]],
+        [3, []],
+        [2, [4, 5]],
+        [4, []],
+        [5, []],
         [6, [7, 8]],
         [7, []],
-        [9, [8]],
         [8, []],
-      ],
-    },
-  ],
-]
+        [9, [8]],
+      ]),
+      graphs: [ // list of graph components (unconnected parts)
+        {
+          nodes: [1, 2, 3, 4, 5], // list of component nodes
+          sources: [1] // list of component start nodes 
+        },
+        {
+          nodes: [6, 7, 8, 9],
+          sources: [6, 9]
+        }
+      ]
+    }
  */
 ```
 

@@ -11,57 +11,96 @@ import {
 
 const test = suite('array')
 
+const normalizeToposortExtraResult = (res) => {
+  res.sources.sort()
+  res.prev.forEach(value => value.sort())
+  res.next.forEach(value => value.sort())
+  res.graphs.forEach(graph => {
+    graph.nodes.sort()
+    graph.sources.sort()
+  })
+  return res
+}
 
 test('toposortExtra returns separate arrays for separate graphs', () => {
-  const res = toposortExtra(twoComponentGraph)
+  const res = toposortExtra({ edges: twoComponentGraph })
 
   assert.deepEqual(
-    res,
-    [
-      {
-        startNodes: [1],
-        array: [
-          [1, [3, 2]],
-          [3, []],
-          [2, [4, 5]],
-          [4, []],
-          [5, []],
-        ],
-      },
-      {
-        startNodes: [6, 9],
-        array: [
-          [6, [7, 8]],
-          [7, []],
-          [9, [8]],
-          [8, []],
-        ],
-      },
-    ],
+    normalizeToposortExtraResult(res),
+    normalizeToposortExtraResult({
+      sources: [1, 6, 9],
+      prev: new Map([
+        [1, []],
+        [3, [1]],
+        [2, [1]],
+        [4, [2]],
+        [5, [2]],
+        [6, []],
+        [7, [6]],
+        [8, [6, 9]],
+        [9, []],
+      ]),
+      next: new Map([
+        [1, [2, 3]],
+        [3, []],
+        [2, [4, 5]],
+        [4, []],
+        [5, []],
+        [6, [7, 8]],
+        [7, []],
+        [8, []],
+        [9, [8]],
+      ]),
+      graphs: [
+        {
+          nodes: [1, 3, 2, 4, 5],
+          sources: [1]
+        },
+        {
+          nodes: [6, 7, 8, 9],
+          sources: [6, 9]
+        }
+      ]
+    }),
   )
 })
 
 test('toposortExtra returns one array for one graph', () => {
-  const res = toposortExtra(oneComponentGraph)
+  const res = toposortExtra({ edges: oneComponentGraph })
 
   assert.deepEqual(
-    res,
-    [
-      {
-        startNodes: [1], // Array<number|string>
-        array: [
-          [1, [3, 2]], // [name: number|string, children: Array<number|string>]
-          [3, [2]],
-          [2, [4, 5]],
-          [4, [9]],
-          [5, [6]],
-          [6, [7, 8]],
-          [9, [8]],
-          [7, []],
-          [8, []],
-        ],
-      },
-    ],
+    normalizeToposortExtraResult(res),
+    normalizeToposortExtraResult({
+      sources: [1],
+      prev: new Map([
+        [1, []],
+        [3, [1]],
+        [2, [1, 3]],
+        [4, [2]],
+        [5, [2]],
+        [6, [5]],
+        [7, [6]],
+        [8, [6, 9]],
+        [9, [4]],
+      ]),
+      next: new Map([
+        [1, [2, 3]],
+        [3, [2]],
+        [2, [4, 5]],
+        [4, [9]],
+        [5, [6]],
+        [6, [7, 8]],
+        [7, []],
+        [8, []],
+        [9, [8]],
+      ]),
+      graphs: [
+        {
+          nodes: [1, 3, 2, 4, 9, 8, 6, 5, 7],
+          sources: [1]
+        },
+      ]
+    }),
   )
 })
 
@@ -74,16 +113,16 @@ test('toposortExtra works with giant one-component graph with in proper time', (
   graph.sort(() => Math.random() > 0.5 ? 1 : -1)
 
   const start = Date.now()
-  const res = toposortExtra(graph)
+  const res = toposortExtra({ edges: graph })
   const diff = Date.now() - start
 
   assert.ok(diff < maxPerformTime, `took ${diff}, should be < ${maxPerformTime}`)
-  assert.equal(res.length, 1)
+  assert.equal(res.graphs.length, 1)
   assert.deepEqual(
-    res[0].startNodes,
+    res.sources,
     ['a0_0'],
   )
-  assert.equal(res[0].array.length, nodesCount)
+  assert.equal(res.graphs[0].nodes.length, nodesCount)
 })
 
 test('toposortExtra works with giant four-component graph with in proper time', () => {
@@ -100,39 +139,59 @@ test('toposortExtra works with giant four-component graph with in proper time', 
   graph.sort(() => Math.random() > 0.5 ? 1 : -1)
 
   const start = Date.now()
-  const res = toposortExtra(graph)
+  const res = toposortExtra({ edges: graph })
   const diff = Date.now() - start
 
   assert.ok(diff < maxPerformTime, `took ${diff} ms, should be < ${maxPerformTime}`)
-  assert.equal(res.length, 4)
+  assert.equal(res.graphs.length, 4)
   assert.deepEqual(
-    res.reduce((acc, component) => [...acc, ...component.startNodes], []).sort(),
+    res.sources.sort(),
     ['a0_0', 'b0_0', 'c0_0', 'd0_0'].sort(),
   )
-  assert.equal(res.reduce((acc, component) => acc + component.array.length, 0), nodesCount)
+  assert.equal(res.graphs.reduce((acc, graph) => acc + graph.nodes.length, 0), nodesCount)
 })
 
 test('toposortExtra throws an error for cyclic graph', () => {
   assert.throws(
-    () => toposortExtra(twoComponentGraphWithLoop),
+    () => toposortExtra({ edges: twoComponentGraphWithLoop, throwOnCycle: true }),
     {
-      message: 'Cyclic dependency, node was:7',
+      message: 'Cyclic dependency, node was:6',
     },
   )
 })
 
 test('toposortExtra throws an error for a graph with a complex cycle', () => {
   assert.throws(
-    () => toposortExtra(oneComponentGraphWithComplexLoop),
+    () => toposortExtra({ edges: oneComponentGraphWithComplexLoop, throwOnCycle: true }),
     {
-      message: 'Cyclic dependency, node was:7',
+      message: 'Cyclic dependency, node was:1',
+    },
+  )
+})
+
+test('toposortExtra does not throws an error for a graph with a complex cycle when throwOnCycle is undefined', () => {
+  toposortExtra({ edges: oneComponentGraphWithComplexLoop })
+})
+
+test('toposortExtra throws an error when there are unknown nodes', () => {
+  assert.throws(
+    () => toposortExtra({
+      nodes: [1, 2, 4, 5, 6, 7, 8, 9],
+      edges: [[1, 3], [1, 2], [2, 4], [2, 5], [6, 7], [6, 8], [9, 8], [7, 6]],
+      throwOnCycle: true,
+    }),
+    {
+      message: 'Unknown node. There is an unknown node in the supplied edges.',
     },
   )
 })
 
 test('toposortExtra throws an error when there are unknown nodes', () => {
   assert.throws(
-    () => toposortExtra([1, 2, 4, 5, 6, 7, 8, 9], [[1, 3], [1, 2], [2, 4], [2, 5], [6, 7], [6, 8], [9, 8], [7, 6]]),
+    () => toposortExtra({
+      nodes: [1, 2, 4, 5, 6, 7, 8, 9],
+      edges: [[1, 3], [1, 2], [2, 4], [2, 5], [6, 7], [6, 8], [9, 8], [7, 6]],
+    }),
     {
       message: 'Unknown node. There is an unknown node in the supplied edges.',
     },
