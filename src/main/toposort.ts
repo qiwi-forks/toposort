@@ -42,7 +42,7 @@ function visitFactory(visited: Record<string, boolean>, outgoingEdges: Map<unkno
 function toposortCore(nodes: unknown[], edges: unknown[][]) {
   const cursor = nodes.length
   let i = cursor
-  const sorted = [cursor]
+  const sorted: any[] = []
   const visited: Record<string, boolean> = {}
   const nodesHash = makeNodesHash(nodes)
   const outgoingEdges = makeOutgoingEdges(edges)
